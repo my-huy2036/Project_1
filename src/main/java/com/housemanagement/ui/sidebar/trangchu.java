@@ -7,14 +7,9 @@ import com.housemanagement.ui.HouseUI;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -24,8 +19,8 @@ import java.util.List;
 public class trangchu extends JPanel {
     private QLyPhong qLyPhongController;
     private RoomDAO roomDAO;
+    private HouseUI parentFrame;
 
-    // Simplified stats labels - keeping only essential ones
     private JLabel lblRentedRoomsCount;
     private JLabel lblVacantRoomsCount;
     private JLabel lblOccupancyRate;
@@ -48,6 +43,7 @@ public class trangchu extends JPanel {
     public trangchu(RoomDAO roomDAO, QLyPhong qLyPhongController) {
         this.roomDAO = roomDAO;
         this.qLyPhongController = qLyPhongController;
+        this.parentFrame = parentFrame;
         initComponents();
         loadHomePageData();
         startAutoRefresh();
@@ -61,6 +57,10 @@ public class trangchu extends JPanel {
         // Main container
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBackground(Color.WHITE);
+
+        // Add top bar with menu icon
+        JPanel topBar = createTopBar();
+        add(topBar, BorderLayout.NORTH);
 
         // Top section: Stats + Notifications
         JPanel topSection = new JPanel(new BorderLayout(10, 10));
@@ -82,6 +82,57 @@ public class trangchu extends JPanel {
 
         // Status bar
         add(createStatusBar(), BorderLayout.SOUTH);
+    }
+
+    private JPanel createTopBar() {
+        JPanel topBar = new JPanel(new BorderLayout());
+        topBar.setBackground(Color.WHITE);
+        topBar.setBorder(new EmptyBorder(0, 0, 10, 0));
+
+        // Left side with menu icon
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        leftPanel.setBackground(Color.WHITE);
+
+        // Menu toggle button (3 lines icon)
+        JButton btnMenu = new JButton("☰");
+        btnMenu.setFont(new Font("Arial", Font.BOLD, 20));
+        btnMenu.setMargin(new Insets(5, 10, 5, 10));
+        btnMenu.setFocusPainted(false);
+        btnMenu.setBackground(new Color(248, 249, 250));
+        btnMenu.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(222, 226, 230), 1),
+                BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+        btnMenu.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // Add hover effect
+        btnMenu.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                btnMenu.setBackground(new Color(233, 236, 239));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                btnMenu.setBackground(new Color(248, 249, 250));
+            }
+        });
+
+        // Toggle sidebar when clicked
+        btnMenu.addActionListener(e -> {
+            if (parentFrame != null && parentFrame.getBtnToggleSidebar() != null) {
+                parentFrame.getBtnToggleSidebar().doClick();
+            }
+        });
+
+        leftPanel.add(btnMenu);
+
+        // Title
+        JLabel lblTitle = new JLabel("  Trang chủ");
+        lblTitle.setFont(new Font("Arial", Font.BOLD, 18));
+        lblTitle.setForeground(new Color(33, 37, 41));
+        leftPanel.add(lblTitle);
+
+        topBar.add(leftPanel, BorderLayout.WEST);
+
+        return topBar;
     }
 
     private JPanel createStatsPanel() {
@@ -344,7 +395,6 @@ public class trangchu extends JPanel {
         }
     }
 
-    // Public method to refresh data from outside
     public void refreshData() {
         loadHomePageData();
     }
