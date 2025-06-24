@@ -201,19 +201,16 @@ public class QLyKhach {
         return null; // Validation passed
     }
 
-    // Kiểm tra email hợp lệ
     private boolean isValidEmail(String email) {
         String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
         return email.matches(emailRegex);
     }
 
-    // Kiểm tra khách có hợp đồng đang hoạt động
     private boolean hasActiveContract(int customerId) {
 
         return false;
     }
 
-    // Format dữ liệu khách hàng trước khi lưu
     public Customer prepareCustomerData(String fullName, String gender, String phone,
                                         String email, String address, String identity) {
         Customer customer = new Customer();

@@ -9,6 +9,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
@@ -19,10 +20,11 @@ public class tien extends JPanel {
     private JComboBox<String> cboThang;
     private JComboBox<ContractItem> cboHopDong;
     private JTextField txtOldE, txtNewE, txtTienNuoc, txtTongTien, txtGhiChu;
-    private JComboBox<String> cboTrangThai, cboHinhThuc;
-    private JButton btnThemHoaDon, btnCapNhat, btnXoa, btnLamMoi, btnTinhTien;
-    private JLabel lblTienPhong, lblTienDichVu, lblSoDienTieuThu;
+    private JButton btnThemHoaDon, btnCapNhat, btnXoa, btnLamMoi, btnTinhTien, btnTimKiem;
+    private JLabel lblTienPhong, lblTienDichVu, lblSoDienTieuThu, lblTienDien;
+    private JTextField txtTimKiem;
     private int selectedBillId = -1;
+    private DecimalFormat currencyFormat = new DecimalFormat("#,##0");
 
     public tien() {
         tinhTienController = new TinhTien();
@@ -32,285 +34,582 @@ public class tien extends JPanel {
 
     private void initializeUI() {
         setLayout(new BorderLayout());
-        setBackground(new Color(240, 240, 240));
+        setBackground(new Color(245, 245, 245));
 
         // Header Panel
         JPanel headerPanel = createHeaderPanel();
         add(headerPanel, BorderLayout.NORTH);
 
-        // Main content panel with split
+        // Main content panel
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setDividerLocation(450);
-        splitPane.setDividerSize(5);
+        splitPane.setDividerLocation(500);
+        splitPane.setDividerSize(8);
+        splitPane.setResizeWeight(0.4);
 
         // Left panel - Form
         JPanel formPanel = createFormPanel();
-        splitPane.setLeftComponent(new JScrollPane(formPanel));
+        JScrollPane formScrollPane = new JScrollPane(formPanel);
+        formScrollPane.setBorder(null);
+        formScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        splitPane.setLeftComponent(formScrollPane);
 
         // Right panel - Table
         JPanel tablePanel = createTablePanel();
         splitPane.setRightComponent(tablePanel);
 
         add(splitPane, BorderLayout.CENTER);
+
+        // Status bar
+        JPanel statusPanel = createStatusPanel();
+        add(statusPanel, BorderLayout.SOUTH);
     }
 
     private JPanel createHeaderPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        panel.setBackground(new Color(52, 152, 219));
+        panel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
 
-        JLabel titleLabel = new JLabel("QUẢN LÝ HÓA ĐƠN");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setForeground(new Color(51, 51, 51));
+        // Title
+        JLabel titleLabel = new JLabel("💰 QUẢN LÝ HÓA ĐƠN ĐIỆN NƯỚC");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        titleLabel.setForeground(Color.WHITE);
 
-        panel.add(titleLabel, BorderLayout.WEST);
+        // Subtitle
+        JLabel subtitleLabel = new JLabel("Tính toán và quản lý các khoản thu hàng tháng");
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        subtitleLabel.setForeground(new Color(220, 220, 220));
+
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setOpaque(false);
+        titlePanel.add(titleLabel, BorderLayout.NORTH);
+        titlePanel.add(subtitleLabel, BorderLayout.SOUTH);
+
+        panel.add(titlePanel, BorderLayout.WEST);
+
+        // Quick actions
+        JPanel quickActions = createQuickActions();
+        panel.add(quickActions, BorderLayout.EAST);
 
         return panel;
+    }
+
+    private JPanel createQuickActions() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        panel.setOpaque(false);
+
+        JButton btnTinhToanNhanh = createHeaderButton("Tính toán nhanh");
+        JButton btnBaoCao = createHeaderButton("Báo cáo");
+        JButton btnXuatFile = createHeaderButton("Xuất file");
+
+        btnTinhToanNhanh.addActionListener(e -> tinhToanNhanh());
+        btnBaoCao.addActionListener(e -> xemBaoCao());
+        btnXuatFile.addActionListener(e -> xuatFile());
+
+        panel.add(btnTinhToanNhanh);
+        panel.add(btnBaoCao);
+        panel.add(btnXuatFile);
+
+        return panel;
+    }
+
+    private JButton createHeaderButton(String text) {
+        JButton button = new JButton(text);
+        button.setBackground(new Color(41, 128, 185));
+        button.setForeground(Color.WHITE);
+        button.setBorder(new RoundedBorder(8));
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setPreferredSize(new Dimension(120, 35));
+
+        // Hover effect
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(new Color(31, 97, 141));
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(new Color(41, 128, 185));
+            }
+        });
+
+        return button;
     }
 
     private JPanel createFormPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        panel.setBorder(new CompoundBorder(
+                new RoundedBorder(12),
+                BorderFactory.createEmptyBorder(25, 25, 25, 25)
+        ));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 8, 8, 8);
 
         int row = 0;
 
-        // Tiêu đề form
+        // Form title
         gbc.gridx = 0; gbc.gridy = row++;
         gbc.gridwidth = 2;
-        JLabel formTitle = new JLabel("THÔNG TIN HÓA ĐƠN");
-        formTitle.setFont(new Font("Arial", Font.BOLD, 18));
-        formTitle.setForeground(new Color(0, 123, 255));
+        JLabel formTitle = new JLabel("📝 THÔNG TIN HÓA ĐƠN");
+        formTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        formTitle.setForeground(new Color(52, 152, 219));
+        formTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
         panel.add(formTitle, gbc);
 
         gbc.gridwidth = 1;
 
-        // Chọn tháng
-        gbc.gridx = 0; gbc.gridy = row;
-        panel.add(new JLabel("Tháng:"), gbc);
+        // Tháng selection
+        addFormField(panel, gbc, row++, "📅 Tháng:", createMonthComboBox());
 
-        gbc.gridx = 1;
-        String[] months = {"01/2024", "02/2024", "03/2024", "04/2024", "05/2024", "06/2024",
-                "07/2024", "08/2024", "09/2024", "10/2024", "11/2024", "12/2024"};
-        cboThang = new JComboBox<>(months);
-        cboThang.setSelectedIndex(getCurrentMonth() - 1);
-        panel.add(cboThang, gbc);
-        row++;
-
-        // Chọn hợp đồng
-        gbc.gridx = 0; gbc.gridy = row;
-        panel.add(new JLabel("Hợp đồng:"), gbc);
-
-        gbc.gridx = 1;
+        // Hợp đồng selection
         cboHopDong = new JComboBox<>();
+        cboHopDong.setRenderer(new ContractRenderer());
         cboHopDong.addActionListener(e -> loadContractInfo());
-        panel.add(cboHopDong, gbc);
-        row++;
+        addFormField(panel, gbc, row++, "📋 Hợp đồng:", cboHopDong);
 
-        // Tiền phòng
-        gbc.gridx = 0; gbc.gridy = row;
-        panel.add(new JLabel("Tiền phòng:"), gbc);
+        // Thông tin tiền
+        lblTienPhong = createInfoLabel("0 VNĐ");
+        addFormField(panel, gbc, row++, "🏠 Tiền phòng:", lblTienPhong);
 
-        gbc.gridx = 1;
-        lblTienPhong = new JLabel("0 VNĐ");
-        lblTienPhong.setFont(new Font("Arial", Font.BOLD, 14));
-        lblTienPhong.setForeground(new Color(0, 123, 255));
-        panel.add(lblTienPhong, gbc);
-        row++;
+        lblTienDichVu = createInfoLabel("0 VNĐ");
+        addFormField(panel, gbc, row++, "🔧 Tiền dịch vụ:", lblTienDichVu);
 
-        // Tiền dịch vụ
-        gbc.gridx = 0; gbc.gridy = row;
-        panel.add(new JLabel("Tiền dịch vụ:"), gbc);
+        // Chỉ số điện
+        txtOldE = createNumberField();
+        txtOldE.addKeyListener(createCalculationKeyListener());
+        addFormField(panel, gbc, row++, "⚡ Chỉ số điện cũ:", txtOldE);
 
-        gbc.gridx = 1;
-        lblTienDichVu = new JLabel("0 VNĐ");
-        lblTienDichVu.setFont(new Font("Arial", Font.BOLD, 14));
-        lblTienDichVu.setForeground(new Color(0, 123, 255));
-        panel.add(lblTienDichVu, gbc);
-        row++;
+        txtNewE = createNumberField();
+        txtNewE.addKeyListener(createCalculationKeyListener());
+        addFormField(panel, gbc, row++, "⚡ Chỉ số điện mới:", txtNewE);
 
-        // Chỉ số điện cũ
-        gbc.gridx = 0; gbc.gridy = row;
-        panel.add(new JLabel("Chỉ số điện cũ:"), gbc);
+        // Thông tin tính toán
+        lblSoDienTieuThu = createCalculationLabel("0 kWh");
+        addFormField(panel, gbc, row++, "📊 Điện tiêu thụ:", lblSoDienTieuThu);
 
-        gbc.gridx = 1;
-        txtOldE = new JTextField(15);
-        txtOldE.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
-                calculateElectricity();
-                calculateTotal();
-            }
-        });
-        panel.add(txtOldE, gbc);
-        row++;
-
-        // Chỉ số điện mới
-        gbc.gridx = 0; gbc.gridy = row;
-        panel.add(new JLabel("Chỉ số điện mới:"), gbc);
-
-        gbc.gridx = 1;
-        txtNewE = new JTextField(15);
-        txtNewE.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
-                calculateElectricity();
-                calculateTotal();
-            }
-        });
-        panel.add(txtNewE, gbc);
-        row++;
-
-        // Số điện tiêu thụ (hiển thị)
-        gbc.gridx = 0; gbc.gridy = row;
-        panel.add(new JLabel("Điện tiêu thụ:"), gbc);
-
-        gbc.gridx = 1;
-        lblSoDienTieuThu = new JLabel("0 kWh");
-        lblSoDienTieuThu.setFont(new Font("Arial", Font.BOLD, 14));
-        lblSoDienTieuThu.setForeground(new Color(255, 87, 34));
-        panel.add(lblSoDienTieuThu, gbc);
-        row++;
+        lblTienDien = createCalculationLabel("0 VNĐ");
+        addFormField(panel, gbc, row++, "💡 Tiền điện:", lblTienDien);
 
         // Tiền nước
-        gbc.gridx = 0; gbc.gridy = row;
-        panel.add(new JLabel("Tiền nước:"), gbc);
-
-        gbc.gridx = 1;
-        txtTienNuoc = new JTextField("0");
-        txtTienNuoc.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
-                calculateTotal();
-            }
-        });
-        panel.add(txtTienNuoc, gbc);
-        row++;
+        txtTienNuoc = createCurrencyField("0");
+        txtTienNuoc.addKeyListener(createCalculationKeyListener());
+        addFormField(panel, gbc, row++, "💧 Tiền nước:", txtTienNuoc);
 
         // Tổng tiền
-        gbc.gridx = 0; gbc.gridy = row;
-        panel.add(new JLabel("Tổng tiền:"), gbc);
-
-        gbc.gridx = 1;
-        txtTongTien = new JTextField();
-        txtTongTien.setEditable(false);
-        txtTongTien.setFont(new Font("Arial", Font.BOLD, 14));
-        txtTongTien.setForeground(Color.RED);
-        panel.add(txtTongTien, gbc);
-        row++;
-
-        // Trạng thái
-        gbc.gridx = 0; gbc.gridy = row;
-        panel.add(new JLabel("Trạng thái:"), gbc);
-
-        gbc.gridx = 1;
-        String[] trangThai = {"Chưa thanh toán", "Đã thanh toán"};
-        cboTrangThai = new JComboBox<>(trangThai);
-        panel.add(cboTrangThai, gbc);
-        row++;
-
-        // Hình thức thanh toán
-        gbc.gridx = 0; gbc.gridy = row;
-        panel.add(new JLabel("Hình thức:"), gbc);
-
-        gbc.gridx = 1;
-        String[] hinhThuc = {"", "Tiền mặt", "Chuyển khoản"};
-        cboHinhThuc = new JComboBox<>(hinhThuc);
-        panel.add(cboHinhThuc, gbc);
-        row++;
+        txtTongTien = createTotalField();
+        addFormField(panel, gbc, row++, "💰 TỔNG TIỀN:", txtTongTien);
 
         // Ghi chú
-        gbc.gridx = 0; gbc.gridy = row;
-        panel.add(new JLabel("Ghi chú:"), gbc);
-
-        gbc.gridx = 1;
         txtGhiChu = new JTextField();
-        panel.add(txtGhiChu, gbc);
-        row++;
+        txtGhiChu.setToolTipText("Nhập ghi chú cho hóa đơn");
+        addFormField(panel, gbc, row++, "📝 Ghi chú:", txtGhiChu);
 
-        // Buttons
+        // Action buttons
         gbc.gridx = 0; gbc.gridy = row;
         gbc.gridwidth = 2;
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        buttonPanel.setBackground(Color.WHITE);
+        gbc.insets = new Insets(20, 0, 0, 0);
+        panel.add(createButtonPanel(), gbc);
 
-        btnThemHoaDon = createButton("Thêm HĐ", new Color(76, 175, 80));
-        btnCapNhat = createButton("Cập nhật", new Color(255, 193, 7));
-        btnXoa = createButton("Xóa", new Color(244, 67, 54));
-        btnLamMoi = createButton("Làm mới", new Color(158, 158, 158));
-        btnTinhTien = createButton("Tính tiền", new Color(33, 150, 243));
+        return panel;
+    }
 
+    private JComboBox<String> createMonthComboBox() {
+        String[] months = new String[12];
+        for (int i = 1; i <= 12; i++) {
+            months[i-1] = String.format("%02d/2024", i);
+        }
+        cboThang = new JComboBox<>(months);
+        cboThang.setSelectedIndex(getCurrentMonth() - 1);
+        return cboThang;
+    }
+
+    private void addFormField(JPanel panel, GridBagConstraints gbc, int row, String label, JComponent component) {
+        gbc.gridx = 0; gbc.gridy = row;
+        gbc.anchor = GridBagConstraints.WEST;
+        JLabel lblField = new JLabel(label);
+        lblField.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblField.setForeground(new Color(70, 70, 70));
+        panel.add(lblField, gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 1.0;
+        panel.add(component, gbc);
+        gbc.weightx = 0;
+    }
+
+    private JLabel createInfoLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        label.setForeground(new Color(52, 152, 219));
+        label.setOpaque(true);
+        label.setBackground(new Color(235, 245, 255));
+        label.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        return label;
+    }
+
+    private JLabel createCalculationLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        label.setForeground(new Color(230, 126, 34));
+        label.setOpaque(true);
+        label.setBackground(new Color(255, 248, 220));
+        label.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        return label;
+    }
+
+    private JTextField createNumberField() {
+        JTextField field = new JTextField(15);
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setBorder(new CompoundBorder(
+                new RoundedBorder(6),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+        return field;
+    }
+
+    private JTextField createCurrencyField(String defaultValue) {
+        JTextField field = createNumberField();
+        field.setText(defaultValue);
+        return field;
+    }
+
+    private JTextField createTotalField() {
+        JTextField field = new JTextField();
+        field.setEditable(false);
+        field.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        field.setForeground(new Color(231, 76, 60));
+        field.setBackground(new Color(255, 235, 235));
+        field.setBorder(new CompoundBorder(
+                new RoundedBorder(8),
+                BorderFactory.createEmptyBorder(12, 15, 12, 15)
+        ));
+        return field;
+    }
+
+    private KeyListener createCalculationKeyListener() {
+        return new KeyAdapter() {
+            public void keyReleased(KeyEvent e) {
+                calculateElectricity();
+                calculateTotal();
+            }
+        };
+    }
+
+    private JPanel createButtonPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        panel.setOpaque(false);
+
+        btnThemHoaDon = createActionButton("Thêm HĐ", new Color(46, 204, 113));
+        btnCapNhat = createActionButton("Cập nhật", new Color(241, 196, 15));
+        btnXoa = createActionButton("Xóa", new Color(231, 76, 60));
+        btnLamMoi = createActionButton("Làm mới", new Color(149, 165, 166));
+        btnTinhTien = createActionButton("Tính tiền", new Color(52, 152, 219));
+
+        // Event listeners
         btnThemHoaDon.addActionListener(e -> themHoaDon());
         btnCapNhat.addActionListener(e -> capNhatHoaDon());
         btnXoa.addActionListener(e -> xoaHoaDon());
         btnLamMoi.addActionListener(e -> lamMoiForm());
         btnTinhTien.addActionListener(e -> calculateTotal());
 
-        buttonPanel.add(btnThemHoaDon);
-        buttonPanel.add(btnCapNhat);
-        buttonPanel.add(btnXoa);
-        buttonPanel.add(btnLamMoi);
-        buttonPanel.add(btnTinhTien);
-
-        panel.add(buttonPanel, gbc);
+        panel.add(btnThemHoaDon);
+        panel.add(btnCapNhat);
+        panel.add(btnXoa);
+        panel.add(btnLamMoi);
+        panel.add(btnTinhTien);
 
         return panel;
+    }
+
+    private JButton createActionButton(String text, Color bgColor) {
+        JButton button = new JButton(text);
+        button.setBackground(bgColor);
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        button.setFocusPainted(false);
+        button.setBorder(new RoundedBorder(8));
+        button.setPreferredSize(new Dimension(100, 40));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // Hover effect
+        Color originalColor = bgColor;
+        Color hoverColor = bgColor.darker();
+
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(hoverColor);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(originalColor);
+            }
+        });
+
+        return button;
     }
 
     private JPanel createTablePanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        panel.setBorder(new CompoundBorder(
+                new RoundedBorder(12),
+                BorderFactory.createEmptyBorder(20, 20, 20, 20)
+        ));
+
+        // Search panel
+        JPanel searchPanel = createSearchPanel();
+        panel.add(searchPanel, BorderLayout.NORTH);
 
         // Table
-        String[] columns = {"ID", "Phòng", "Khách", "Tháng", "Chỉ số cũ", "Chỉ số mới", "Điện", "Nước", "Tổng tiền"};
-        tableModel = new DefaultTableModel(columns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-
-        table = new JTable(tableModel);
-        table.setRowHeight(30);
-        table.setFont(new Font("Arial", Font.PLAIN, 13));
-        table.setSelectionBackground(new Color(232, 245, 253));
-        table.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                loadSelectedBill();
-            }
-        });
-
-        // Column widths
-        table.getColumnModel().getColumn(0).setPreferredWidth(50);  // ID
-        table.getColumnModel().getColumn(1).setPreferredWidth(80);  // Phòng
-        table.getColumnModel().getColumn(2).setPreferredWidth(150); // Khách
-        table.getColumnModel().getColumn(3).setPreferredWidth(80);  // Tháng
-        table.getColumnModel().getColumn(4).setPreferredWidth(80);  // Chỉ số cũ
-        table.getColumnModel().getColumn(5).setPreferredWidth(80);  // Chỉ số mới
-        table.getColumnModel().getColumn(6).setPreferredWidth(80);  // Điện
-        table.getColumnModel().getColumn(7).setPreferredWidth(80);  // Nước
-        table.getColumnModel().getColumn(8).setPreferredWidth(100); // Tổng tiền
-
+        createTable();
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230)));
+        scrollPane.setBorder(new RoundedBorder(8));
+        scrollPane.getViewport().setBackground(Color.WHITE);
 
         panel.add(scrollPane, BorderLayout.CENTER);
 
         return panel;
     }
 
-    private JButton createButton(String text, Color bgColor) {
-        JButton button = new JButton(text);
-        button.setBackground(bgColor);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setPreferredSize(new Dimension(100, 35));
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return button;
+    private JPanel createSearchPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
+        panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+
+        JLabel searchLabel = new JLabel("🔍 DANH SÁCH HÓA ĐƠN");
+        searchLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        searchLabel.setForeground(new Color(52, 152, 219));
+
+        JPanel searchInputPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        searchInputPanel.setOpaque(false);
+
+        txtTimKiem = new JTextField(20);
+        txtTimKiem.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtTimKiem.setBorder(new CompoundBorder(
+                new RoundedBorder(6),
+                BorderFactory.createEmptyBorder(6, 10, 6, 10)
+        ));
+        txtTimKiem.setToolTipText("Tìm kiếm theo tên khách hàng, phòng...");
+
+        btnTimKiem = new JButton("Tìm kiếm");
+        btnTimKiem.setBackground(new Color(52, 152, 219));
+        btnTimKiem.setForeground(Color.WHITE);
+        btnTimKiem.setBorder(new RoundedBorder(6));
+        btnTimKiem.setFocusPainted(false);
+        btnTimKiem.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        btnTimKiem.addActionListener(e -> timKiemHoaDon());
+
+        searchInputPanel.add(new JLabel("Tìm kiếm:"));
+        searchInputPanel.add(txtTimKiem);
+        searchInputPanel.add(btnTimKiem);
+
+        panel.add(searchLabel, BorderLayout.WEST);
+        panel.add(searchInputPanel, BorderLayout.EAST);
+
+        return panel;
     }
 
+    private void createTable() {
+        String[] columns = {"ID", "Phòng", "Khách hàng", "Tháng", "Chỉ số cũ", "Chỉ số mới",
+                "Điện (kWh)", "Tiền điện", "Tiền nước", "Tổng tiền"};
+
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                if (columnIndex == 0) return Integer.class;
+                return String.class;
+            }
+        };
+
+        table = new JTable(tableModel);
+        table.setRowHeight(35);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        table.setSelectionBackground(new Color(232, 245, 253));
+        table.setSelectionForeground(new Color(52, 152, 219));
+        table.setGridColor(new Color(230, 230, 230));
+        table.setShowGrid(true);
+        table.setIntercellSpacing(new Dimension(1, 1));
+
+        // Custom header
+        JTableHeader header = table.getTableHeader();
+        header.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        header.setBackground(new Color(52, 152, 219));
+        header.setForeground(Color.WHITE);
+        header.setPreferredSize(new Dimension(0, 40));
+
+        // Column widths
+        int[] columnWidths = {50, 80, 150, 80, 80, 80, 80, 100, 100, 120};
+        for (int i = 0; i < columnWidths.length && i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setPreferredWidth(columnWidths[i]);
+        }
+
+        // Selection listener
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                loadSelectedBill();
+            }
+        });
+    }
+
+    private JPanel createStatusPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(new Color(236, 240, 241));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+
+        JLabel statusLabel = new JLabel("Sẵn sàng");
+        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        statusLabel.setForeground(new Color(127, 140, 141));
+
+        JLabel recordCountLabel = new JLabel("Tổng: 0 hóa đơn");
+        recordCountLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        recordCountLabel.setForeground(new Color(127, 140, 141));
+
+        panel.add(statusLabel, BorderLayout.WEST);
+        panel.add(recordCountLabel, BorderLayout.EAST);
+
+        return panel;
+    }
+
+    // Calculation methods
+    private void calculateElectricity() {
+        try {
+            String oldEStr = txtOldE.getText().trim();
+            String newEStr = txtNewE.getText().trim();
+
+            if (!oldEStr.isEmpty() && !newEStr.isEmpty()) {
+                int oldE = Integer.parseInt(oldEStr);
+                int newE = Integer.parseInt(newEStr);
+                int electricityUsed = Math.max(0, newE - oldE);
+
+                lblSoDienTieuThu.setText(electricityUsed + " kWh");
+
+                // Tính tiền điện (3500 VNĐ/kWh)
+                BigDecimal electricityAmount = new BigDecimal(electricityUsed * 3500);
+                lblTienDien.setText(currencyFormat.format(electricityAmount) + " VNĐ");
+            } else {
+                lblSoDienTieuThu.setText("0 kWh");
+                lblTienDien.setText("0 VNĐ");
+            }
+        } catch (NumberFormatException e) {
+            lblSoDienTieuThu.setText("0 kWh");
+            lblTienDien.setText("0 VNĐ");
+        }
+    }
+
+    private void calculateTotal() {
+        try {
+            ContractItem selected = (ContractItem) cboHopDong.getSelectedItem();
+            if (selected == null) return;
+
+            // Tiền điện
+            BigDecimal electricityAmount = BigDecimal.ZERO;
+            String oldEStr = txtOldE.getText().trim();
+            String newEStr = txtNewE.getText().trim();
+
+            if (!oldEStr.isEmpty() && !newEStr.isEmpty()) {
+                int oldE = Integer.parseInt(oldEStr);
+                int newE = Integer.parseInt(newEStr);
+                int electricityUsed = Math.max(0, newE - oldE);
+                electricityAmount = new BigDecimal(electricityUsed * 3500);
+            }
+
+            // Tiền nước
+            BigDecimal waterAmount = new BigDecimal(
+                    txtTienNuoc.getText().trim().isEmpty() ? "0" : txtTienNuoc.getText().trim()
+            );
+
+            // Tiền phòng và dịch vụ
+            BigDecimal roomPrice = selected.contract.getRoomPrice();
+            BigDecimal servicePrice = BigDecimal.ZERO;
+            try {
+                servicePrice = tinhTienController.getTotalServicePrice(selected.contract.getContractId());
+            } catch (Exception e) {
+                // Ignore error, use 0
+            }
+
+            // Tổng tiền
+            BigDecimal total = roomPrice.add(servicePrice).add(electricityAmount).add(waterAmount);
+            txtTongTien.setText(currencyFormat.format(total) + " VNĐ");
+        } catch (Exception e) {
+            txtTongTien.setText("0 VNĐ");
+        }
+    }
+
+    // Action methods
+    private void tinhToanNhanh() {
+        JOptionPane.showMessageDialog(this, "Tính toán nhanh - Chức năng đang phát triển",
+                "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void xemBaoCao() {
+        JOptionPane.showMessageDialog(this, "Xem báo cáo - Chức năng đang phát triển",
+                "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void xuatFile() {
+        JOptionPane.showMessageDialog(this, "Xuất file - Chức năng đang phát triển",
+                "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void timKiemHoaDon() {
+        String keyword = txtTimKiem.getText().trim();
+        if (keyword.isEmpty()) {
+            loadBills();
+            return;
+        }
+
+        // Tìm kiếm trong dữ liệu hiện có của bảng
+        tableModel.setRowCount(0);
+        try {
+            List<Bill> allBills = tinhTienController.getAllBills();
+            SimpleDateFormat sdf = new SimpleDateFormat("MM/yyyy");
+
+            for (Bill bill : allBills) {
+                // Tìm kiếm theo tên khách hàng hoặc tên phòng
+                boolean match = false;
+                if (bill.getCustomerName() != null &&
+                        bill.getCustomerName().toLowerCase().contains(keyword.toLowerCase())) {
+                    match = true;
+                }
+                if (bill.getRoomName() != null &&
+                        bill.getRoomName().toLowerCase().contains(keyword.toLowerCase())) {
+                    match = true;
+                }
+
+                if (match) {
+                    Object[] row = {
+                            bill.getBillId(),
+                            bill.getRoomName(),
+                            bill.getCustomerName(),
+                            bill.getMonth() != null ? sdf.format(bill.getMonth()) : "",
+                            bill.getOldE() != null ? bill.getOldE() : 0,
+                            bill.getNewE() != null ? bill.getNewE() : 0,
+                            calculateElectricityConsumption(bill),
+                            formatElectricityPrice(bill),
+                            bill.getWater() != null ? currencyFormat.format(bill.getWater()) + " VNĐ" : "0 VNĐ",
+                            bill.getTotal() != null ? currencyFormat.format(bill.getTotal()) + " VNĐ" : "0 VNĐ"
+                    };
+                    tableModel.addRow(row);
+                }
+            }
+        } catch (Exception e) {
+            showError("Lỗi khi tìm kiếm: " + e.getMessage());
+        }
+    }
+
+    // Data loading methods
     private void loadData() {
         loadContracts();
         loadBills();
@@ -322,6 +621,11 @@ public class tien extends JPanel {
             List<TinhTien.Contract> contracts = tinhTienController.getActiveContracts();
             for (TinhTien.Contract contract : contracts) {
                 cboHopDong.addItem(new ContractItem(contract));
+            }
+
+            if (cboHopDong.getItemCount() > 0) {
+                cboHopDong.setSelectedIndex(0);
+                loadContractInfo();
             }
         } catch (Exception e) {
             showError("Lỗi khi tải danh sách hợp đồng: " + e.getMessage());
@@ -342,9 +646,10 @@ public class tien extends JPanel {
                         bill.getMonth() != null ? sdf.format(bill.getMonth()) : "",
                         bill.getOldE() != null ? bill.getOldE() : 0,
                         bill.getNewE() != null ? bill.getNewE() : 0,
-                        bill.getElectricity() != null ? String.format("%.0f", bill.getElectricity()) : "0",
-                        bill.getWater() != null ? String.format("%.0f", bill.getWater()) : "0",
-                        bill.getTotal() != null ? String.format("%,.0f VNĐ", bill.getTotal()) : "0 VNĐ"
+                        calculateElectricityConsumption(bill),
+                        formatElectricityPrice(bill),
+                        bill.getWater() != null ? currencyFormat.format(bill.getWater()) + " VNĐ" : "0 VNĐ",
+                        bill.getTotal() != null ? currencyFormat.format(bill.getTotal()) + " VNĐ" : "0 VNĐ"
                 };
                 tableModel.addRow(row);
             }
@@ -353,15 +658,30 @@ public class tien extends JPanel {
         }
     }
 
+    private String calculateElectricityConsumption(Bill bill) {
+        if (bill.getOldE() != null && bill.getNewE() != null) {
+            int consumption = Math.max(0, bill.getNewE() - bill.getOldE());
+            return String.valueOf(consumption);
+        }
+        return "0";
+    }
+
+    private String formatElectricityPrice(Bill bill) {
+        if (bill.getElectricity() != null) {
+            return currencyFormat.format(bill.getElectricity()) + " VNĐ";
+        }
+        return "0 VNĐ";
+    }
+
     private void loadContractInfo() {
         ContractItem selected = (ContractItem) cboHopDong.getSelectedItem();
         if (selected != null) {
             TinhTien.Contract contract = selected.contract;
-            lblTienPhong.setText(String.format("%,.0f VNĐ", contract.getRoomPrice()));
+            lblTienPhong.setText(currencyFormat.format(contract.getRoomPrice()) + " VNĐ");
 
             try {
                 BigDecimal serviceTotal = tinhTienController.getTotalServicePrice(contract.getContractId());
-                lblTienDichVu.setText(String.format("%,.0f VNĐ", serviceTotal));
+                lblTienDichVu.setText(currencyFormat.format(serviceTotal) + " VNĐ");
             } catch (Exception e) {
                 lblTienDichVu.setText("0 VNĐ");
             }
@@ -370,68 +690,7 @@ public class tien extends JPanel {
         }
     }
 
-    private void calculateElectricity() {
-        try {
-            String oldEStr = txtOldE.getText().trim();
-            String newEStr = txtNewE.getText().trim();
-
-            if (!oldEStr.isEmpty() && !newEStr.isEmpty()) {
-                int oldE = Integer.parseInt(oldEStr);
-                int newE = Integer.parseInt(newEStr);
-                int electricityUsed = newE - oldE;
-
-                if (electricityUsed >= 0) {
-                    lblSoDienTieuThu.setText(electricityUsed + " kWh");
-                } else {
-                    lblSoDienTieuThu.setText("0 kWh");
-                }
-            } else {
-                lblSoDienTieuThu.setText("0 kWh");
-            }
-        } catch (NumberFormatException e) {
-            lblSoDienTieuThu.setText("0 kWh");
-        }
-    }
-
-    private void calculateTotal() {
-        try {
-            ContractItem selected = (ContractItem) cboHopDong.getSelectedItem();
-            if (selected == null) return;
-
-            // Tính tiền điện
-            BigDecimal electricityAmount = BigDecimal.ZERO;
-            String oldEStr = txtOldE.getText().trim();
-            String newEStr = txtNewE.getText().trim();
-
-            if (!oldEStr.isEmpty() && !newEStr.isEmpty()) {
-                int oldE = Integer.parseInt(oldEStr);
-                int newE = Integer.parseInt(newEStr);
-                int electricityUsed = Math.max(0, newE - oldE);
-
-                // Giả sử giá điện là 3500 VNĐ/kWh
-                electricityAmount = new BigDecimal(electricityUsed * 3500);
-            }
-
-            // Tiền nước
-            BigDecimal waterAmount = new BigDecimal(txtTienNuoc.getText().trim().isEmpty() ? "0" : txtTienNuoc.getText().trim());
-
-            // Tiền phòng và dịch vụ
-            BigDecimal roomPrice = selected.contract.getRoomPrice();
-            BigDecimal servicePrice = BigDecimal.ZERO;
-            try {
-                servicePrice = tinhTienController.getTotalServicePrice(selected.contract.getContractId());
-            } catch (Exception e) {
-                // Ignore error, use 0
-            }
-
-            // Tổng tiền
-            BigDecimal total = roomPrice.add(servicePrice).add(electricityAmount).add(waterAmount);
-            txtTongTien.setText(String.format("%,.0f VNĐ", total));
-        } catch (Exception e) {
-            txtTongTien.setText("0 VNĐ");
-        }
-    }
-
+    // CRUD methods
     private void themHoaDon() {
         try {
             ContractItem selected = (ContractItem) cboHopDong.getSelectedItem();
@@ -441,8 +700,6 @@ public class tien extends JPanel {
             }
 
             String monthStr = (String) cboThang.getSelectedItem();
-
-            // Convert month string to Date
             SimpleDateFormat sdf = new SimpleDateFormat("MM/yyyy");
             Date month = new Date(sdf.parse(monthStr).getTime());
 
@@ -471,7 +728,7 @@ public class tien extends JPanel {
             BigDecimal electricityAmount = BigDecimal.ZERO;
             if (bill.getOldE() != null && bill.getNewE() != null) {
                 int electricityUsed = Math.max(0, bill.getNewE() - bill.getOldE());
-                electricityAmount = new BigDecimal(electricityUsed * 3500); // 3500 VNĐ/kWh
+                electricityAmount = new BigDecimal(electricityUsed * 3500);
             }
             bill.setElectricity(electricityAmount);
 
@@ -492,7 +749,7 @@ public class tien extends JPanel {
             bill.setTotal(total);
 
             tinhTienController.createBill(bill);
-            showInfo("Thêm hóa đơn thành công!");
+            showInfo("✅ Thêm hóa đơn thành công!");
             loadBills();
             lamMoiForm();
         } catch (Exception e) {
@@ -551,7 +808,7 @@ public class tien extends JPanel {
             }
 
             tinhTienController.updateBill(bill);
-            showInfo("Cập nhật hóa đơn thành công!");
+            showInfo("✅ Cập nhật hóa đơn thành công!");
             loadBills();
             lamMoiForm();
         } catch (Exception e) {
@@ -567,12 +824,13 @@ public class tien extends JPanel {
 
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Bạn có chắc muốn xóa hóa đơn này?",
-                "Xác nhận", JOptionPane.YES_NO_OPTION);
+                "Xác nhận xóa", JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 tinhTienController.deleteBill(selectedBillId);
-                showInfo("Xóa hóa đơn thành công!");
+                showInfo("✅ Xóa hóa đơn thành công!");
                 loadBills();
                 lamMoiForm();
             } catch (Exception e) {
@@ -608,7 +866,7 @@ public class tien extends JPanel {
                     txtOldE.setText(bill.getOldE() != null ? bill.getOldE().toString() : "");
                     txtNewE.setText(bill.getNewE() != null ? bill.getNewE().toString() : "");
                     txtTienNuoc.setText(bill.getWater() != null ? bill.getWater().toString() : "0");
-                    txtTongTien.setText(bill.getTotal() != null ? String.format("%,.0f VNĐ", bill.getTotal()) : "0 VNĐ");
+                    txtTongTien.setText(bill.getTotal() != null ? currencyFormat.format(bill.getTotal()) + " VNĐ" : "0 VNĐ");
 
                     calculateElectricity();
                 }
@@ -628,11 +886,11 @@ public class tien extends JPanel {
         txtNewE.setText("");
         txtTienNuoc.setText("0");
         txtTongTien.setText("0 VNĐ");
-        cboTrangThai.setSelectedIndex(0);
-        cboHinhThuc.setSelectedIndex(0);
         txtGhiChu.setText("");
         lblSoDienTieuThu.setText("0 kWh");
+        lblTienDien.setText("0 VNĐ");
         table.clearSelection();
+        txtTimKiem.setText("");
     }
 
     private int getCurrentMonth() {
@@ -647,7 +905,7 @@ public class tien extends JPanel {
         JOptionPane.showMessageDialog(this, message, "Lỗi", JOptionPane.ERROR_MESSAGE);
     }
 
-    // Inner class for ComboBox items
+    // Custom renderers and components
     private class ContractItem {
         TinhTien.Contract contract;
 
@@ -657,7 +915,52 @@ public class tien extends JPanel {
 
         @Override
         public String toString() {
-            return contract.getRoomName() + " - " + contract.getCustomerName();
+            return String.format("Phòng %s - %s", contract.getRoomName(), contract.getCustomerName());
+        }
+    }
+
+    private class ContractRenderer extends DefaultListCellRenderer {
+        @Override
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                      boolean isSelected, boolean cellHasFocus) {
+            super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+            if (value instanceof ContractItem) {
+                ContractItem item = (ContractItem) value;
+                setText(String.format("🏠 %s - 👤 %s",
+                        item.contract.getRoomName(),
+                        item.contract.getCustomerName()));
+            }
+
+            return this;
+        }
+    }
+
+    // Custom border class
+    private class RoundedBorder implements Border {
+        private int radius;
+
+        RoundedBorder(int radius) {
+            this.radius = radius;
+        }
+
+        @Override
+        public Insets getBorderInsets(Component c) {
+            return new Insets(radius/2, radius/2, radius/2, radius/2);
+        }
+
+        @Override
+        public boolean isBorderOpaque() {
+            return false;
+        }
+
+        @Override
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setColor(new Color(200, 200, 200));
+            g2d.drawRoundRect(x, y, width - 1, height - 1, radius, radius);
+            g2d.dispose();
         }
     }
 }

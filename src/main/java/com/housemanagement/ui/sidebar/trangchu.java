@@ -288,7 +288,7 @@ public class trangchu extends JPanel {
         StringBuilder notifications = new StringBuilder();
 
         if (rentedCount == 0 && vacantCount > 0) {
-            notifications.append("• Không có phòng nào được thuê. Cần tăng cường marketing!\n");
+            notifications.append("• Không có phòng nào được thuê.\n");
         }
 
         if (vacantCount == 0 && rentedCount > 0) {

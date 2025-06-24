@@ -44,6 +44,9 @@ public class khach extends JPanel {
     // Search timer for real-time search
     private Timer searchTimer;
 
+    // Flag để track trạng thái hiện tại
+    private boolean isShowingAddForm = false;
+
     public khach() {
         qlyKhachController = new QLyKhach();
         initializeUI();
@@ -76,6 +79,9 @@ public class khach extends JPanel {
         contentPanel.add(themKhachForm, "AddCustomer");
 
         add(contentPanel, BorderLayout.CENTER);
+
+        // Show customer list by default
+        mainCardLayout.show(contentPanel, "CustomerList");
     }
 
     private JPanel createHeaderPanel() {
@@ -90,22 +96,14 @@ public class khach extends JPanel {
         titleLabel.setFont(TITLE_FONT);
         titleLabel.setForeground(DARK_GRAY_COLOR);
 
+        // Tạo nút Thêm khách
         btnThemKhach = createStyledButton("+ Thêm khách", SUCCESS_COLOR, Color.WHITE, BOLD_FONT);
+        btnThemKhach.setPreferredSize(new Dimension(130, 35));
         btnThemKhach.addActionListener(e -> {
-            if (mainCardLayout != null) {
-                Component currentCard = null;
-                for (Component comp : contentPanel.getComponents()) {
-                    if (comp.isVisible()) {
-                        currentCard = comp;
-                        break;
-                    }
-                }
-
-                if (currentCard instanceof ThemKhach) {
-                    switchToCustomerList();
-                } else {
-                    switchToAddForm();
-                }
+            if (isShowingAddForm) {
+                switchToCustomerList();
+            } else {
+                switchToAddForm();
             }
         });
 
@@ -373,14 +371,16 @@ public class khach extends JPanel {
 
     // Switch to add form
     public void switchToAddForm() {
+        isShowingAddForm = true;
         themKhachForm.clearForm();
         mainCardLayout.show(contentPanel, "AddCustomer");
-        btnThemKhach.setText("Quay lại");
+        btnThemKhach.setText("← Quay lại");
         btnThemKhach.setBackground(INFO_COLOR);
     }
 
     // Switch back to customer list
     public void switchToCustomerList() {
+        isShowingAddForm = false;
         mainCardLayout.show(contentPanel, "CustomerList");
         btnThemKhach.setText("+ Thêm khách");
         btnThemKhach.setBackground(SUCCESS_COLOR);
@@ -438,6 +438,8 @@ public class khach extends JPanel {
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createEmptyBorder(8, 18, 8, 18));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
 
         // Hover effect
         Color hoverBgColor = bgColor.brighter();
@@ -476,7 +478,7 @@ public class khach extends JPanel {
             styleActionButton(editButton, INFO_COLOR, Color.WHITE);
 
             deleteButton = new JButton("Xóa");
-            styleActionButton(deleteButton, DANGER_COLOR, Color.WHITE);
+            styleActionButton(deleteButton, DANGER_COLOR, Color.GRAY);
 
             add(editButton);
             add(deleteButton);
@@ -572,7 +574,6 @@ public class khach extends JPanel {
                 // Get customer object
                 Customer customer = qlyKhachController.getCustomerById(customerId);
                 if (customer != null) {
-                    // Show delete dialog
                     boolean deleted = XoaKhach.showDeleteConfirmDialog(
                             (Frame) SwingUtilities.getWindowAncestor(table),
                             customer,

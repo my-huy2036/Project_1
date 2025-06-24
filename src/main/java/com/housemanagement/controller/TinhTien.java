@@ -12,7 +12,7 @@ public class TinhTien {
     // Lấy danh sách tất cả hóa đơn
     public List<Bill> getAllBills() throws SQLException {
         List<Bill> bills = new ArrayList<>();
-        String sql = "SELECT b.*, c.room_id, r.room_name, cu.full_name " +
+        String sql = "SELECT b.*, c.room_id, r.room_name, cu.fullname " +
                 "FROM bills b " +
                 "LEFT JOIN contracts c ON b.contract_id = c.contract_id " +
                 "LEFT JOIN rooms r ON c.room_id = r.room_id " +
@@ -36,7 +36,7 @@ public class TinhTien {
 
                 // Thông tin bổ sung
                 bill.setRoomName(rs.getString("room_name"));
-                bill.setCustomerName(rs.getString("full_name"));
+                bill.setCustomerName(rs.getString("fullname"));
 
                 bills.add(bill);
             }
@@ -46,7 +46,7 @@ public class TinhTien {
 
     // Lấy hóa đơn theo ID
     public Bill getBillById(int billId) throws SQLException {
-        String sql = "SELECT b.*, c.room_id, r.room_name, cu.full_name FROM bills b " +
+        String sql = "SELECT b.*, c.room_id, r.room_name, cu.fullname FROM bills b " +
                 "LEFT JOIN contracts c ON b.contract_id = c.contract_id " +
                 "LEFT JOIN rooms r ON c.room_id = r.room_id " +
                 "LEFT JOIN customers cu ON c.customer_id = cu.customer_id " +
@@ -69,7 +69,7 @@ public class TinhTien {
                 bill.setWater(rs.getBigDecimal("water"));
                 bill.setTotal(rs.getBigDecimal("total"));
                 bill.setRoomName(rs.getString("room_name"));
-                bill.setCustomerName(rs.getString("full_name"));
+                bill.setCustomerName(rs.getString("fullname"));
                 return bill;
             }
         }
@@ -80,7 +80,7 @@ public class TinhTien {
     public List<Contract> getActiveContracts() throws SQLException {
         List<Contract> contracts = new ArrayList<>();
         String sql = "SELECT c.contract_id, c.room_id, c.customer_id, " +
-                "r.room_name, r.price as room_price, cu.full_name " +
+                "r.room_name, r.price as room_price, cu.fullname " +
                 "FROM contracts c " +
                 "JOIN rooms r ON c.room_id = r.room_id " +
                 "JOIN customers cu ON c.customer_id = cu.customer_id " +
@@ -98,7 +98,7 @@ public class TinhTien {
                 contract.setCustomerId(rs.getInt("customer_id"));
                 contract.setRoomName(rs.getString("room_name"));
                 contract.setRoomPrice(rs.getBigDecimal("room_price"));
-                contract.setCustomerName(rs.getString("full_name"));
+                contract.setCustomerName(rs.getString("fullname"));
                 contracts.add(contract);
             }
         }

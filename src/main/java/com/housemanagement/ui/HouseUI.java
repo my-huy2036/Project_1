@@ -2,6 +2,7 @@ package com.housemanagement.ui;
 
 import com.housemanagement.dao.RoomDAO;
 import com.housemanagement.controller.QLyPhong;
+
 import com.housemanagement.ui.sidebar.SidebarPanel;
 import com.housemanagement.ui.sidebar.trangchu;
 import com.housemanagement.ui.sidebar.phong;
@@ -22,7 +23,7 @@ public class HouseUI extends JFrame {
 
     private RoomDAO roomDAO;
     private QLyPhong qLyPhongController;
-    private Connection connection; // Add connection field
+    private Connection connection;
 
     private JPanel contentDisplayPanel;
     private CardLayout cardLayout;
@@ -30,7 +31,6 @@ public class HouseUI extends JFrame {
     private SidebarPanel sidebarInstance;
     private JButton btnToggleSidebar;
 
-    // Your existing color and font constants...
     public static final Font DEFAULT_FONT = new Font("Arial", Font.PLAIN, 14);
     public static final Font BOLD_FONT = new Font("Arial", Font.BOLD, 14);
     public static final Font HEADER_FONT = new Font("Arial", Font.BOLD, 16);
