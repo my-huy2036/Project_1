@@ -5,22 +5,16 @@ import com.housemanagement.dao.UserDAO;
 import com.housemanagement.model.User;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Calendar;
-import java.util.Date;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.sql.SQLException;
 
 public class RegisterFrame extends JFrame {
-    private JTextField txtUsername, txtEmail, txtHometown;
+    private JTextField txtUsername, txtEmail;
     private JPasswordField txtPassword;
-    private JComboBox<String> cbRole;
-    private JComboBox<String> cbDay, cbMonth, cbYear; // Cho ngày sinh
     private JButton btnRegister, btnBack;
 
     public RegisterFrame() {
         setTitle("Đăng ký tài khoản");
-        setSize(450, 420); // Tăng chiều rộng và chiều cao của Frame
+        setSize(400, 300);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setResizable(false);
@@ -31,9 +25,10 @@ public class RegisterFrame extends JFrame {
         int yPos = 30;
         int spacing = 40;
         int labelWidth = 120;
-        int fieldX = 160;
-        int fieldWidth = 220; // Tăng chiều rộng chung của các trường
+        int fieldX = 140;
+        int fieldWidth = 200;
 
+        // Tên đăng nhập
         JLabel lblUsername = new JLabel("Tên đăng nhập:");
         lblUsername.setBounds(30, yPos, labelWidth, 25);
         panel.add(lblUsername);
@@ -42,14 +37,7 @@ public class RegisterFrame extends JFrame {
         panel.add(txtUsername);
         yPos += spacing;
 
-        JLabel lblPassword = new JLabel("Mật khẩu:");
-        lblPassword.setBounds(30, yPos, labelWidth, 25);
-        panel.add(lblPassword);
-        txtPassword = new JPasswordField();
-        txtPassword.setBounds(fieldX, yPos, fieldWidth, 25);
-        panel.add(txtPassword);
-        yPos += spacing;
-
+        // Email
         JLabel lblEmail = new JLabel("Email:");
         lblEmail.setBounds(30, yPos, labelWidth, 25);
         panel.add(lblEmail);
@@ -58,151 +46,35 @@ public class RegisterFrame extends JFrame {
         panel.add(txtEmail);
         yPos += spacing;
 
-        JLabel lblHometown = new JLabel("Quê quán:");
-        lblHometown.setBounds(30, yPos, labelWidth, 25);
-        panel.add(lblHometown);
-        txtHometown = new JTextField();
-        txtHometown.setBounds(fieldX, yPos, fieldWidth, 25);
-        panel.add(txtHometown);
-        yPos += spacing;
+        // Mật khẩu (chuyển xuống cuối)
+        JLabel lblPassword = new JLabel("Mật khẩu:");
+        lblPassword.setBounds(30, yPos, labelWidth, 25);
+        panel.add(lblPassword);
+        txtPassword = new JPasswordField();
+        txtPassword.setBounds(fieldX, yPos, fieldWidth, 25);
+        panel.add(txtPassword);
+        yPos += spacing + 20;
 
-        JLabel lblDob = new JLabel("Ngày sinh:");
-        lblDob.setBounds(30, yPos, labelWidth, 25);
-        panel.add(lblDob);
-
-        JPanel dobPanel = new JPanel(null);
-        // Đảm bảo dobPanel đủ rộng: 70 (ngày) + 5 (cách) + 70 (tháng) + 5 (cách) + 85 (năm) = 235
-        dobPanel.setBounds(fieldX, yPos, 235, 25);
-        int dobFieldX = 0;
-        int dobSpacing = 5;
-
-        cbDay = new JComboBox<>();
-        for (int i = 1; i <= 31; i++) {
-            cbDay.addItem(String.format("%02d", i));
-        }
-        cbDay.setBounds(dobFieldX, 0, 70, 25); // Tăng chiều rộng cbDay
-        dobPanel.add(cbDay);
-        dobFieldX += 70 + dobSpacing;
-
-        cbMonth = new JComboBox<>();
-        for (int i = 1; i <= 12; i++) {
-            cbMonth.addItem(String.format("%02d", i));
-        }
-        cbMonth.setBounds(dobFieldX, 0, 70, 25); // Tăng chiều rộng cbMonth và điều chỉnh vị trí
-        dobPanel.add(cbMonth);
-        dobFieldX += 70 + dobSpacing;
-
-        cbYear = new JComboBox<>();
-        int currentYear = Calendar.getInstance().get(Calendar.YEAR);
-        for (int i = currentYear; i >= currentYear - 100; i--) {
-            cbYear.addItem(String.valueOf(i));
-        }
-        cbYear.setBounds(dobFieldX, 0, 85, 25); // Tăng chiều rộng cbYear và điều chỉnh vị trí
-        dobPanel.add(cbYear);
-        panel.add(dobPanel);
-        yPos += spacing;
-
+        // Buttons
         btnRegister = new JButton("Đăng ký");
-        btnRegister.setBounds(100, yPos, 100, 30);
+        btnRegister.setBounds(80, yPos, 100, 30);
         panel.add(btnRegister);
 
         btnBack = new JButton("Quay lại");
-        btnBack.setBounds(240, yPos, 100, 30);
+        btnBack.setBounds(220, yPos, 100, 30);
         panel.add(btnBack);
 
         add(panel);
 
+        // Xử lý sự kiện Enter
+        txtUsername.addActionListener(e -> txtEmail.requestFocus());
+        txtEmail.addActionListener(e -> txtPassword.requestFocus());
+        txtPassword.addActionListener(e -> handleRegister());
+
         btnRegister.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String username = txtUsername.getText().trim();
-                String password = new String(txtPassword.getPassword()).trim();
-                String email = txtEmail.getText().trim();
-                String hometown = txtHometown.getText().trim();
-                String selectedRoleDisplay = (String) cbRole.getSelectedItem();
-                String roleToStore = "";
-
-                if (username.isEmpty() || password.isEmpty()) {
-                    JOptionPane.showMessageDialog(RegisterFrame.this,
-                            "Tên đăng nhập và mật khẩu không được để trống.",
-                            "Thiếu thông tin",
-                            JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-
-                if ("Khách hàng".equals(selectedRoleDisplay)) {
-                    roleToStore = "customer";
-                } else if ("Chủ nhà".equals(selectedRoleDisplay)) {
-                    roleToStore = "owner";
-                } else {
-                    JOptionPane.showMessageDialog(RegisterFrame.this,
-                            "Vai trò không hợp lệ.", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                String day = (String) cbDay.getSelectedItem();
-                String month = (String) cbMonth.getSelectedItem();
-                String year = (String) cbYear.getSelectedItem();
-                Date dateOfBirth = null;
-                if (day != null && month != null && year != null) {
-                    String dobString = year + "-" + month + "-" + day;
-                    try {
-                        dateOfBirth = new SimpleDateFormat("yyyy-MM-dd").parse(dobString);
-                    } catch (ParseException ex) {
-                        JOptionPane.showMessageDialog(RegisterFrame.this,
-                                "Ngày sinh không hợp lệ. Vui lòng kiểm tra lại.",
-                                "Lỗi định dạng ngày", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                }
-
-
-                User user = new User();
-                user.setUsername(username);
-                user.setPassword(password);
-                user.setEmail(email);
-                user.setHometown(hometown);
-                user.setRole(roleToStore);
-                user.setDateOfBirth(dateOfBirth);
-
-                UserDAO userDAO = new UserDAO();
-                try {
-                    if (userDAO.isUsernameTaken(username)) {
-                        JOptionPane.showMessageDialog(RegisterFrame.this,
-                                "Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.",
-                                "Đăng ký thất bại", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-
-                    boolean success = userDAO.registerUser(user);
-                    if (success) {
-                        JOptionPane.showMessageDialog(RegisterFrame.this,
-                                "Đăng ký thành công! Vui lòng đăng nhập.",
-                                "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                        RegisterFrame.this.dispose();
-                        new LoginFrame().setVisible(true);
-                    } else {
-                        JOptionPane.showMessageDialog(RegisterFrame.this,
-                                "Đăng ký thất bại do lỗi không xác định. Vui lòng thử lại.",
-                                "Đăng ký thất bại", JOptionPane.ERROR_MESSAGE);
-                    }
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                    if(ex.getMessage().toLowerCase().contains("duplicate entry")){
-                        JOptionPane.showMessageDialog(RegisterFrame.this,
-                                "Tên đăng nhập hoặc email đã tồn tại.",
-                                "Đăng ký thất bại", JOptionPane.ERROR_MESSAGE);
-                    } else {
-                        JOptionPane.showMessageDialog(RegisterFrame.this,
-                                "Lỗi hệ thống trong quá trình đăng ký: " + ex.getMessage(),
-                                "Lỗi hệ thống", JOptionPane.ERROR_MESSAGE);
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(RegisterFrame.this,
-                            "Lỗi không xác định: " + ex.getMessage(),
-                            "Lỗi hệ thống", JOptionPane.ERROR_MESSAGE);
-                }
+                handleRegister();
             }
         });
 
@@ -215,11 +87,120 @@ public class RegisterFrame extends JFrame {
         });
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                new RegisterFrame().setVisible(true);
+    private void handleRegister() {
+        String username = txtUsername.getText().trim();
+        String email = txtEmail.getText().trim();
+        String password = new String(txtPassword.getPassword()).trim();
+
+        // Validate input
+        if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(RegisterFrame.this,
+                    "Vui lòng nhập đầy đủ thông tin.",
+                    "Thiếu thông tin",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Validate email format
+        if (!isValidEmail(email)) {
+            JOptionPane.showMessageDialog(RegisterFrame.this,
+                    "Email không hợp lệ.",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Validate password length
+        if (password.length() < 6) {
+            JOptionPane.showMessageDialog(RegisterFrame.this,
+                    "Mật khẩu phải có ít nhất 6 ký tự.",
+                    "Mật khẩu yếu",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(password);
+        user.setEmail(email);
+
+        UserDAO userDAO = new UserDAO();
+        try {
+            // Kiểm tra username đã tồn tại
+            if (userDAO.isUsernameTaken(username)) {
+                JOptionPane.showMessageDialog(RegisterFrame.this,
+                        "Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.",
+                        "Đăng ký thất bại",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
             }
-        });
+
+            // Kiểm tra email đã tồn tại
+            if (userDAO.isEmailTaken(email)) {
+                JOptionPane.showMessageDialog(RegisterFrame.this,
+                        "Email đã được sử dụng. Vui lòng dùng email khác.",
+                        "Đăng ký thất bại",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Thực hiện đăng ký
+            boolean success = userDAO.registerUser(user);
+            if (success) {
+                JOptionPane.showMessageDialog(RegisterFrame.this,
+                        "Đăng ký thành công! Vui lòng đăng nhập.",
+                        "Thành công",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                // Đóng form đăng ký và mở form đăng nhập
+                RegisterFrame.this.dispose();
+                new LoginFrame().setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(RegisterFrame.this,
+                        "Đăng ký thất bại. Vui lòng thử lại.",
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            if (ex.getMessage().toLowerCase().contains("duplicate entry")) {
+                if (ex.getMessage().contains("username")) {
+                    JOptionPane.showMessageDialog(RegisterFrame.this,
+                            "Tên đăng nhập đã tồn tại.",
+                            "Đăng ký thất bại",
+                            JOptionPane.ERROR_MESSAGE);
+                } else if (ex.getMessage().contains("email")) {
+                    JOptionPane.showMessageDialog(RegisterFrame.this,
+                            "Email đã được sử dụng.",
+                            "Đăng ký thất bại",
+                            JOptionPane.ERROR_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(RegisterFrame.this,
+                            "Thông tin đã tồn tại trong hệ thống.",
+                            "Đăng ký thất bại",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(RegisterFrame.this,
+                        "Lỗi hệ thống: " + ex.getMessage(),
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(RegisterFrame.this,
+                    "Lỗi không xác định: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private boolean isValidEmail(String email) {
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        return email.matches(emailRegex);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new RegisterFrame().setVisible(true));
     }
 }

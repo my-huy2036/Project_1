@@ -10,11 +10,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter; // Thêm import này
+import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Ellipse2D;
 
 public class LoginFrame extends JFrame {
-    private JTextField txtEmail;
+    private JTextField txtEmailOrUsername;
     private JPasswordField txtPassword;
     private JButton btnLogin, btnRegister;
 
@@ -24,21 +24,19 @@ public class LoginFrame extends JFrame {
     private static final Color BUTTON_SIGN_IN_FG_COLOR = Color.WHITE;
     private static final Color BUTTON_REGISTER_BG_COLOR = new Color(0xF0, 0xF0, 0xF0);
     private static final Color BUTTON_REGISTER_FG_COLOR = new Color(0x60, 0x60, 0x60);
-    private static final Color FORGOT_PASSWORD_COLOR = new Color(0x60, 0x60, 0x60);
     private static final Font DEFAULT_FONT = new Font("Arial", Font.PLAIN, 14);
     private static final Font TITLE_FONT = new Font("Arial", Font.BOLD, 24);
     private static final Font BUTTON_FONT = new Font("Arial", Font.BOLD, 14);
 
     private static final Color CLOSE_BUTTON_COLOR = new Color(0xFF5F57);
     private static final Color MINIMIZE_BUTTON_COLOR = new Color(0xFFBD2E);
-    private static final Color MAXIMIZE_BUTTON_COLOR = new Color(0xFF28C940);
 
     private Point initialClick;
 
     public LoginFrame() {
         setTitle("Đăng nhập");
         setUndecorated(true);
-        setSize(400, 550);
+        setSize(400, 500);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -54,7 +52,7 @@ public class LoginFrame extends JFrame {
 
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 25, 10));
         titlePanel.setBackground(BACKGROUND_COLOR);
-        JLabel lblLoginTitle = new JLabel("LOGIN");
+        JLabel lblLoginTitle = new JLabel("ĐĂNG NHẬP");
         lblLoginTitle.setFont(TITLE_FONT);
         lblLoginTitle.setForeground(new Color(0x30, 0x30, 0x30));
         titlePanel.add(lblLoginTitle);
@@ -63,31 +61,17 @@ public class LoginFrame extends JFrame {
         JPanel centerPanel = new JPanel();
         centerPanel.setBackground(BACKGROUND_COLOR);
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
-        centerPanel.setBorder(new EmptyBorder(30, 40, 30, 40));
+        centerPanel.setBorder(new EmptyBorder(50, 40, 50, 40));
 
-        txtEmail = new JTextField("EMAIL");
-        txtPassword = new JPasswordField("PASSWORD");
+        txtEmailOrUsername = new JTextField("EMAIL HOẶC TÊN ĐĂNG NHẬP");
+        txtPassword = new JPasswordField("MẬT KHẨU");
 
-        customizeTextField(txtEmail, "EMAIL");
-        customizeTextField(txtPassword, "PASSWORD");
+        customizeTextField(txtEmailOrUsername, "EMAIL HOẶC TÊN ĐĂNG NHẬP");
+        customizeTextField(txtPassword, "MẬT KHẨU");
 
-        centerPanel.add(txtEmail);
+        centerPanel.add(txtEmailOrUsername);
         centerPanel.add(Box.createRigidArea(new Dimension(0, 25)));
         centerPanel.add(txtPassword);
-        centerPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-
-        JLabel lblForgotPassword = new JLabel("FORGOT YOUR PASSWORD");
-        lblForgotPassword.setFont(new Font("Arial", Font.PLAIN, 12));
-        lblForgotPassword.setForeground(FORGOT_PASSWORD_COLOR);
-        lblForgotPassword.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblForgotPassword.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        lblForgotPassword.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                JOptionPane.showMessageDialog(LoginFrame.this, "Chức năng Quên mật khẩu đang được phát triển!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-            }
-        });
-        centerPanel.add(lblForgotPassword);
         centerPanel.add(Box.createVerticalGlue());
 
         contentWrapper.add(centerPanel, BorderLayout.CENTER);
@@ -96,21 +80,23 @@ public class LoginFrame extends JFrame {
         JPanel bottomPanel = new JPanel(new GridLayout(1, 2, 0, 0));
         bottomPanel.setPreferredSize(new Dimension(getWidth(), 60));
 
-        btnRegister = new JButton("REGISTER");
+        btnRegister = new JButton("ĐĂNG KÝ");
         btnRegister.setFont(BUTTON_FONT);
         btnRegister.setBackground(BUTTON_REGISTER_BG_COLOR);
         btnRegister.setForeground(BUTTON_REGISTER_FG_COLOR);
         btnRegister.setFocusPainted(false);
         btnRegister.setBorderPainted(false);
         btnRegister.setOpaque(true);
+        btnRegister.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        btnLogin = new JButton("SIGN IN");
+        btnLogin = new JButton("ĐĂNG NHẬP");
         btnLogin.setFont(BUTTON_FONT);
         btnLogin.setBackground(BUTTON_SIGN_IN_BG_COLOR);
         btnLogin.setForeground(BUTTON_SIGN_IN_FG_COLOR);
         btnLogin.setFocusPainted(false);
         btnLogin.setBorderPainted(false);
         btnLogin.setOpaque(true);
+        btnLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         bottomPanel.add(btnRegister);
         bottomPanel.add(btnLogin);
@@ -118,40 +104,14 @@ public class LoginFrame extends JFrame {
 
         add(mainPanel);
 
+        // Xử lý sự kiện Enter
+        txtEmailOrUsername.addActionListener(e -> txtPassword.requestFocus());
+        txtPassword.addActionListener(e -> handleLogin());
+
         btnLogin.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String emailOrUsername = txtEmail.getText().trim();
-                String password = new String(txtPassword.getPassword());
-
-                if ("EMAIL".equals(emailOrUsername) || emailOrUsername.isEmpty() ||
-                        "PASSWORD".equals(password) || password.isEmpty()) {
-                    JOptionPane.showMessageDialog(LoginFrame.this,
-                            "Vui lòng nhập email và mật khẩu.",
-                            "Thông tin trống",
-                            JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-
-                UserDAO userDAO = new UserDAO();
-                try {
-                    User user = userDAO.authenticate(emailOrUsername, password);
-                    if (user != null) {
-                        openDashboard(user);
-                        LoginFrame.this.dispose();
-                    } else {
-                        JOptionPane.showMessageDialog(LoginFrame.this,
-                                "Email hoặc mật khẩu không đúng.",
-                                "Đăng nhập thất bại",
-                                JOptionPane.ERROR_MESSAGE);
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(LoginFrame.this,
-                            "Lỗi kết nối hoặc xử lý dữ liệu: " + ex.getMessage(),
-                            "Lỗi hệ thống",
-                            JOptionPane.ERROR_MESSAGE);
-                }
+                handleLogin();
             }
         });
 
@@ -164,12 +124,45 @@ public class LoginFrame extends JFrame {
         });
     }
 
+    private void handleLogin() {
+        String emailOrUsername = txtEmailOrUsername.getText().trim();
+        String password = new String(txtPassword.getPassword());
+
+        if ("EMAIL HOẶC TÊN ĐĂNG NHẬP".equals(emailOrUsername) || emailOrUsername.isEmpty() ||
+                "MẬT KHẨU".equals(password) || password.isEmpty()) {
+            JOptionPane.showMessageDialog(LoginFrame.this,
+                    "Vui lòng nhập tài khoản và mật khẩu.",
+                    "Thông tin trống",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        UserDAO userDAO = new UserDAO();
+        try {
+            User user = userDAO.authenticate(emailOrUsername, password);
+            if (user != null) {
+                openDashboard(user);
+                LoginFrame.this.dispose();
+            } else {
+                JOptionPane.showMessageDialog(LoginFrame.this,
+                        "Tài khoản hoặc mật khẩu không đúng.",
+                        "Đăng nhập thất bại",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(LoginFrame.this,
+                    "Lỗi kết nối hoặc xử lý dữ liệu: " + ex.getMessage(),
+                    "Lỗi hệ thống",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private JPanel createCustomTitleBar() {
         JPanel titleBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
         titleBar.setBackground(new Color(0xECECEC));
         titleBar.setPreferredSize(new Dimension(getWidth(), 30));
         titleBar.setBorder(new MatteBorder(0,0,1,0, Color.LIGHT_GRAY));
-
 
         JButton btnClose = createCircularButton(CLOSE_BUTTON_COLOR, "Đóng");
         btnClose.addActionListener(e -> System.exit(0));
@@ -177,20 +170,9 @@ public class LoginFrame extends JFrame {
         JButton btnMinimize = createCircularButton(MINIMIZE_BUTTON_COLOR, "Thu nhỏ");
         btnMinimize.addActionListener(e -> setState(JFrame.ICONIFIED));
 
-        JButton btnMaximize = createCircularButton(MAXIMIZE_BUTTON_COLOR, "Phóng to/Khôi phục");
-        btnMaximize.addActionListener(e -> {
-            if (getExtendedState() == JFrame.MAXIMIZED_BOTH) {
-                setExtendedState(JFrame.NORMAL);
-            } else {
-                JOptionPane.showMessageDialog(LoginFrame.this, "Chức năng Phóng to đang được phát triển.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-
-            }
-        });
-
         titleBar.add(Box.createHorizontalStrut(5));
         titleBar.add(btnClose);
         titleBar.add(btnMinimize);
-        titleBar.add(btnMaximize);
 
         titleBar.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
@@ -198,7 +180,7 @@ public class LoginFrame extends JFrame {
                 getComponentAt(initialClick);
             }
         });
-        titleBar.addMouseMotionListener(new MouseMotionAdapter() { // Sử dụng MouseMotionAdapter đã import
+        titleBar.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
                 int thisX = getLocation().x;
@@ -212,7 +194,6 @@ public class LoginFrame extends JFrame {
                 setLocation(X, Y);
             }
         });
-
 
         return titleBar;
     }
@@ -249,7 +230,6 @@ public class LoginFrame extends JFrame {
         return button;
     }
 
-
     private void customizeTextField(JTextField textField, String placeholder) {
         textField.setFont(DEFAULT_FONT);
         textField.setForeground(Color.GRAY);
@@ -285,27 +265,7 @@ public class LoginFrame extends JFrame {
     }
 
     private void openDashboard(User user) {
-        String role = user.getRole();
-        if (role == null) {
-            JOptionPane.showMessageDialog(this,
-                    "Không thể xác định vai trò người dùng.",
-                    "Lỗi vai trò",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        if ("owner".equalsIgnoreCase(role) || "admin".equalsIgnoreCase(role)) {
-            SwingUtilities.invokeLater(() -> new HouseManagementGUI().setVisible(true));
-            this.dispose();
-        } else if ("customer".equalsIgnoreCase(role) || "Khách hàng".equalsIgnoreCase(role)) {
-            SwingUtilities.invokeLater(() -> new CustomerPortalFrame(user).setVisible(true));
-            this.dispose();
-        } else {
-            JOptionPane.showMessageDialog(this,
-                    "Vai trò '" + user.getRole() + "' không được hỗ trợ đăng nhập vào cổng này.",
-                    "Truy cập bị từ chối",
-                    JOptionPane.WARNING_MESSAGE);
-        }
+        SwingUtilities.invokeLater(() -> new HouseUI().setVisible(true));
     }
 
     public static void main(String[] args) {

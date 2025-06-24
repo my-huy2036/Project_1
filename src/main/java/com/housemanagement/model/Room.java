@@ -1,28 +1,28 @@
 package com.housemanagement.model;
 
 public class Room {
-    private int roomId;  // thêm trường này
+    private int roomId;
+    private int userId;  // Thêm field userId
     private String roomName;
     private double rent;
-    private double electricity;
-    private double previousElectricity;
-    private double serviceFee;
+    private int max;
+    private String status;
 
-    // Constructor không tham số
+    // Constructor mặc định
     public Room() {
+        this.status = "Còn trống"; // Giá trị mặc định
     }
 
-    // Constructor có roomId
-    public Room(int roomId, String roomName, double rent, double electricity, double previousElectricity, double serviceFee) {
-        this.roomId = roomId;
+    // Constructor đầy đủ
+    public Room(int userId, String roomName, double rent, int max) {
+        this.userId = userId;
         this.roomName = roomName;
         this.rent = rent;
-        this.electricity = electricity;
-        this.previousElectricity = previousElectricity;
-        this.serviceFee = serviceFee;
+        this.max = max;
+        this.status = "Còn trống";
     }
 
-    // Getter và Setter cho roomId
+    // Getters and Setters
     public int getRoomId() {
         return roomId;
     }
@@ -31,7 +31,14 @@ public class Room {
         this.roomId = roomId;
     }
 
-    // Getter Setter còn lại giữ nguyên
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
     public String getRoomName() {
         return roomName;
     }
@@ -48,27 +55,40 @@ public class Room {
         this.rent = rent;
     }
 
-    public double getElectricity() {
-        return electricity;
+    public int getMax() {
+        return max;
     }
 
-    public void setElectricity(double electricity) {
-        this.electricity = electricity;
+    public void setMax(int max) {
+        this.max = max;
     }
 
-    public double getPreviousElectricity() {
-        return previousElectricity;
+    public String getStatus() {
+        return status;
     }
 
-    public void setPreviousElectricity(double previousElectricity) {
-        this.previousElectricity = previousElectricity;
+    public void setStatus(String status) {
+        // Chuẩn hóa status
+        if (status == null || status.trim().isEmpty()) {
+            this.status = "Còn trống";
+        } else if ("available".equalsIgnoreCase(status) || "Còn trống".equals(status)) {
+            this.status = "Còn trống";
+        } else if ("unavailable".equalsIgnoreCase(status) || "Đã cho thuê".equals(status)) {
+            this.status = "Đã cho thuê";
+        } else {
+            this.status = status;
+        }
     }
 
-    public double getServiceFee() {
-        return serviceFee;
-    }
-
-    public void setServiceFee(double serviceFee) {
-        this.serviceFee = serviceFee;
+    @Override
+    public String toString() {
+        return "Room{" +
+                "roomId=" + roomId +
+                ", userId=" + userId +
+                ", roomName='" + roomName + '\'' +
+                ", rent=" + rent +
+                ", max=" + max +
+                ", status='" + status + '\'' +
+                '}';
     }
 }
