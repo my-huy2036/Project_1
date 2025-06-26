@@ -8,7 +8,7 @@ public class SuaHopDong {
     public boolean updateContract(Contract contract) throws SQLException {
         validateContract(contract);
 
-        String sql = "UPDATE contracts SET customer_id=?, room_id=?, start_date=?, end_date=?, deposit=?, status=?, updated_at=CURRENT_TIMESTAMP WHERE contract_id=?";
+        String sql = "UPDATE contracts SET customer_id=?, room_id=?, start_date=?, end_date=?, updated_at=CURRENT_TIMESTAMP WHERE contract_id=?";
 
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -23,11 +23,8 @@ public class SuaHopDong {
             } else {
                 stmt.setNull(4, Types.DATE);
             }
-
-            // Deposit is a double primitive, cannot be null
-            stmt.setDouble(5, contract.getDeposit());
-            stmt.setString(6, contract.getStatus());
-            stmt.setInt(7, contract.getContractId());
+            stmt.setString(5, contract.getStatus());
+            stmt.setInt(6, contract.getContractId());
 
             return stmt.executeUpdate() > 0;
         }
@@ -61,11 +58,6 @@ public class SuaHopDong {
         // Validate end date if provided
         if (contract.getEndDate() != null && contract.getEndDate().before(contract.getStartDate())) {
             throw new IllegalArgumentException("Ngày kết thúc phải sau ngày bắt đầu!");
-        }
-
-        // Validate deposit (double primitive cannot be null, so only check if negative)
-        if (contract.getDeposit() < 0) {
-            throw new IllegalArgumentException("Tiền cọc không được âm!");
         }
     }
 }

@@ -7,7 +7,7 @@ import com.housemanagement.ui.sidebar.SidebarPanel;
 import com.housemanagement.ui.sidebar.trangchu;
 import com.housemanagement.ui.sidebar.phong;
 import com.housemanagement.ui.sidebar.khach;
-import com.housemanagement.ui.sidebar.email;
+import com.housemanagement.ui.sidebar.tien;
 import com.housemanagement.ui.sidebar.hopdong;
 
 import javax.swing.*;
@@ -163,9 +163,6 @@ public class HouseUI extends JFrame {
 
         hopdong hopdongPanel = new hopdong();
         contentDisplayPanel.add(hopdongPanel, "Hợp đồng");
-
-        email emailPanel = new email();
-        contentDisplayPanel.add(emailPanel, "Lịch sử gửi email");
 
         mainContentWrapper.add(contentDisplayPanel, BorderLayout.CENTER);
         add(mainContentWrapper, BorderLayout.CENTER);

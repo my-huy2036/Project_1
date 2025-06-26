@@ -62,7 +62,7 @@ public class SidebarPanel extends JPanel {
         add(Box.createRigidArea(new Dimension(0, 20)));
 
         String[] menuItems = {"Trang chủ", "Phòng", "Khách thuê", "Hợp đồng",
-                "Tính tiền", "Lịch sử gửi email"};
+                "Tính tiền"};
 
         menuButtons.clear();
         for (String item : menuItems) {

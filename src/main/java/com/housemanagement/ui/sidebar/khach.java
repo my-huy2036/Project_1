@@ -98,7 +98,7 @@ public class khach extends JPanel {
 
         // Tạo nút Thêm khách
         btnThemKhach = createStyledButton("+ Thêm khách", SUCCESS_COLOR, Color.WHITE, BOLD_FONT);
-        btnThemKhach.setPreferredSize(new Dimension(130, 35));
+        btnThemKhach.setPreferredSize(new Dimension(150, 35));
         btnThemKhach.addActionListener(e -> {
             if (isShowingAddForm) {
                 switchToCustomerList();
@@ -265,7 +265,7 @@ public class khach extends JPanel {
         header.setForeground(DARK_GRAY_COLOR);
         header.setFont(BOLD_FONT);
         header.setPreferredSize(new Dimension(header.getWidth(), 45));
-        ((DefaultTableCellRenderer)header.getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
+        ((DefaultTableCellRenderer) header.getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
 
         // Action column
         table.getColumnModel().getColumn(7).setCellRenderer(new ActionButtonRenderer());
@@ -449,14 +449,17 @@ public class khach extends JPanel {
             public void mouseEntered(MouseEvent e) {
                 button.setBackground(hoverBgColor);
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
                 button.setBackground(bgColor);
             }
+
             @Override
             public void mousePressed(MouseEvent e) {
                 button.setBackground(pressedBgColor);
             }
+
             @Override
             public void mouseReleased(MouseEvent e) {
                 button.setBackground(hoverBgColor);
@@ -465,53 +468,70 @@ public class khach extends JPanel {
         return button;
     }
 
-    // --- Action Buttons for Table ---
+    // --- Action Buttons for Table - FIXED VERSION ---
     class ActionButtonPanel extends JPanel {
         public JButton editButton;
         public JButton deleteButton;
 
         public ActionButtonPanel() {
-            super(new FlowLayout(FlowLayout.CENTER, 5, 0));
-            setOpaque(false);
+            // Sử dụng FlowLayout với alignment CENTER và khoảng cách nhỏ
+            super(new FlowLayout(FlowLayout.CENTER, 3, 2));
+            setOpaque(true); // Đổi thành true để background hiển thị đúng
+            setPreferredSize(new Dimension(120, 40)); // Đặt kích thước cố định
 
             editButton = new JButton("Sửa");
             styleActionButton(editButton, INFO_COLOR, Color.WHITE);
+            editButton.setPreferredSize(new Dimension(50, 28)); // Kích thước cố định cho nút
 
             deleteButton = new JButton("Xóa");
-            styleActionButton(deleteButton, DANGER_COLOR, Color.GRAY);
+            styleActionButton(deleteButton, DANGER_COLOR, Color.WHITE); // Đổi text color thành WHITE
+            deleteButton.setPreferredSize(new Dimension(50, 28)); // Kích thước cố định cho nút
 
             add(editButton);
             add(deleteButton);
         }
 
         private void styleActionButton(JButton button, Color color, Color foregroundColor) {
-            button.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            button.setFont(new Font("Segoe UI", Font.BOLD, 11)); // Giảm font size một chút
             button.setForeground(foregroundColor);
             button.setBackground(color);
             button.setFocusPainted(false);
-            button.setMargin(new Insets(4, 8, 4, 8));
+            button.setMargin(new Insets(2, 6, 2, 6)); // Giảm margin
             button.setCursor(new Cursor(Cursor.HAND_CURSOR));
             button.setOpaque(true);
             button.setBorderPainted(false);
+            button.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6)); // Đặt border rõ ràng
 
+            // Hover effects
             Color hoverBgColor = color.brighter();
             Color pressedBgColor = color.darker();
             button.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseEntered(MouseEvent e) {
-                    button.setBackground(hoverBgColor);
+                    if (button.isEnabled()) {
+                        button.setBackground(hoverBgColor);
+                    }
                 }
+
                 @Override
                 public void mouseExited(MouseEvent e) {
-                    button.setBackground(color);
+                    if (button.isEnabled()) {
+                        button.setBackground(color);
+                    }
                 }
+
                 @Override
                 public void mousePressed(MouseEvent e) {
-                    button.setBackground(pressedBgColor);
+                    if (button.isEnabled()) {
+                        button.setBackground(pressedBgColor);
+                    }
                 }
+
                 @Override
                 public void mouseReleased(MouseEvent e) {
-                    button.setBackground(hoverBgColor);
+                    if (button.isEnabled()) {
+                        button.setBackground(hoverBgColor);
+                    }
                 }
             });
         }
@@ -523,11 +543,19 @@ public class khach extends JPanel {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
                                                        boolean isSelected, boolean hasFocus, int row, int column) {
+            // Đặt background color cho panel
             if (isSelected) {
                 panel.setBackground(table.getSelectionBackground());
             } else {
-                panel.setBackground(row % 2 == 0 ? Color.WHITE : LIGHT_GRAY_COLOR);
+                // Alternating row colors
+                Color bgColor = row % 2 == 0 ? Color.WHITE : new Color(248, 249, 250);
+                panel.setBackground(bgColor);
             }
+
+            // Đảm bảo panel được repaint
+            panel.revalidate();
+            panel.repaint();
+
             return panel;
         }
     }
@@ -559,7 +587,7 @@ public class khach extends JPanel {
                     );
 
                     if (updated) {
-                        loadCustomerData(); // Refresh table
+                        loadCustomerData();
                     }
                 }
             });
@@ -567,11 +595,9 @@ public class khach extends JPanel {
             panel.deleteButton.addActionListener(e -> {
                 fireEditingStopped();
 
-                // Get customer data from current row
                 int modelRow = table.convertRowIndexToModel(currentRow);
                 int customerId = (int) tableModel.getValueAt(modelRow, 0);
 
-                // Get customer object
                 Customer customer = qlyKhachController.getCustomerById(customerId);
                 if (customer != null) {
                     boolean deleted = XoaKhach.showDeleteConfirmDialog(
@@ -581,7 +607,7 @@ public class khach extends JPanel {
                     );
 
                     if (deleted) {
-                        loadCustomerData(); // Refresh table
+                        loadCustomerData();
                     }
                 }
             });
@@ -591,11 +617,19 @@ public class khach extends JPanel {
         public Component getTableCellEditorComponent(JTable table, Object value,
                                                      boolean isSelected, int row, int column) {
             this.currentRow = row;
+
+            // Đặt background color cho panel
             if (isSelected) {
                 panel.setBackground(table.getSelectionBackground());
             } else {
-                panel.setBackground(row % 2 == 0 ? Color.WHITE : LIGHT_GRAY_COLOR);
+                Color bgColor = row % 2 == 0 ? Color.WHITE : new Color(248, 249, 250);
+                panel.setBackground(bgColor);
             }
+
+            // Đảm bảo panel được repaint
+            panel.revalidate();
+            panel.repaint();
+
             return panel;
         }
 

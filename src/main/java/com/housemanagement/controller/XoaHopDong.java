@@ -201,11 +201,6 @@ public class XoaHopDong extends JDialog {
         if (contract.getRoomRent() > 0) {
             details.append("Giá Thuê: ").append(String.format("%,.0f VNĐ/tháng", contract.getRoomRent())).append("\n");
         }
-
-        if (contract.getDeposit() > 0) {
-            details.append("Tiền Cọc: ").append(String.format("%,.0f VNĐ", contract.getDeposit())).append("\n");
-        }
-
         details.append("Trạng Thái: ").append(getStatusInVietnamese(contract.getStatus())).append("\n");
 
         if (contract.getNote() != null && !contract.getNote().trim().isEmpty()) {

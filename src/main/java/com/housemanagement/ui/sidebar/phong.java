@@ -280,14 +280,12 @@ public class phong extends JPanel {
     }
 
     public void updateRoomCardsLayoutPublic() {
-        // Không cần update layout vì dùng BoxLayout
     }
 
     public void loadRoomData() {
         roomCardsPanel.removeAll();
         List<Room> rooms = qLyPhongController.getAllRooms();
 
-        // Apply filters
         rooms = applyFilters(rooms);
 
         if (rooms.isEmpty()) {
@@ -300,11 +298,9 @@ public class phong extends JPanel {
         roomCardsPanel.repaint();
     }
 
-    // Simplified applyFilters method with direct comparison
     private List<Room> applyFilters(List<Room> rooms) {
         List<Room> filteredRooms = new ArrayList<>(rooms);
 
-        // Search filter
         String searchText = searchField.getText();
         if (!searchText.isEmpty() && !searchText.equals("Tìm kiếm theo tên phòng...")) {
             filteredRooms.removeIf(room ->
@@ -313,7 +309,6 @@ public class phong extends JPanel {
             );
         }
 
-        // Room state filter - simplified with direct comparison
         if (!roomStateFilterPlaceholderActive && cbRoomStateFilter.getSelectedItem() != null) {
             String stateFilter = cbRoomStateFilter.getSelectedItem().toString();
             if (!"Tất cả".equals(stateFilter)) {
@@ -324,11 +319,9 @@ public class phong extends JPanel {
             }
         }
 
-        // Payment status filter (if needed)
         if (!paymentStatusFilterPlaceholderActive && cbPaymentStatusFilter.getSelectedItem() != null) {
             String paymentFilter = cbPaymentStatusFilter.getSelectedItem().toString();
             if (!"Tất cả".equals(paymentFilter)) {
-                // Implement payment status filtering logic here if needed
             }
         }
 
@@ -373,11 +366,10 @@ public class phong extends JPanel {
         for (Room room : rooms) {
             JPanel roomCard = createRoomCardHorizontal(room);
             roomCardsPanel.add(roomCard);
-            roomCardsPanel.add(Box.createVerticalStrut(10)); // Khoảng cách giữa các card
+            roomCardsPanel.add(Box.createVerticalStrut(10));
         }
     }
 
-    // Tạo room card dạng ngang - simplified to use direct status
     private JPanel createRoomCardHorizontal(Room room) {
         JPanel card = new JPanel(new BorderLayout(10, 10));
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -395,7 +387,6 @@ public class phong extends JPanel {
         JPanel leftPanel = new JPanel(new BorderLayout(10, 5));
         leftPanel.setBackground(Color.WHITE);
 
-        // Room name and status
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(Color.WHITE);
 
@@ -403,7 +394,6 @@ public class phong extends JPanel {
         lblRoomName.setFont(new Font("Arial", Font.BOLD, 18));
         lblRoomName.setForeground(new Color(33, 37, 41));
 
-        // Use direct status without conversion
         JLabel statusBadge = createStatusBadge(room.getStatus());
 
         headerPanel.add(lblRoomName, BorderLayout.WEST);
@@ -411,7 +401,6 @@ public class phong extends JPanel {
 
         leftPanel.add(headerPanel, BorderLayout.NORTH);
 
-        // Room details
         JPanel detailsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 5));
         detailsPanel.setBackground(Color.WHITE);
 
@@ -587,7 +576,6 @@ public class phong extends JPanel {
         button.setMargin(new Insets(6, 12, 6, 12));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Add hover effect
         addHoverEffect(button, backgroundColor, backgroundColor.darker());
 
         return button;

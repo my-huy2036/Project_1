@@ -11,17 +11,14 @@ import java.awt.*;
 public class SuaKhach {
 
     public static boolean showEditDialog(Frame parent, Customer customer, QLyKhach qlyKhachController, khach khachPanel) {
-        // Create dialog
         JDialog dialog = new JDialog(parent, "Sửa thông tin khách hàng", true);
         dialog.setLayout(new BorderLayout());
         dialog.setSize(500, 450);
         dialog.setLocationRelativeTo(parent);
 
-        // Main panel
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(Color.WHITE);
 
-        // Title
         JLabel lblTitle = new JLabel("Sửa thông tin khách hàng");
         lblTitle.setFont(new Font("Arial", Font.BOLD, 20));
         lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
@@ -63,7 +60,6 @@ public class SuaKhach {
         genderGroup.add(rbNam);
         genderGroup.add(rbNu);
 
-        // Set selected based on current gender
         if ("M".equals(customer.getGender())) {
             rbNam.setSelected(true);
         } else {
@@ -75,7 +71,6 @@ public class SuaKhach {
         formPanel.add(genderPanel, gbc);
         y++;
 
-        // CCCD
         gbc.gridx = 0; gbc.gridy = y;
         formPanel.add(new JLabel("CCCD/CMND*:"), gbc);
         gbc.gridx = 1;
@@ -83,7 +78,6 @@ public class SuaKhach {
         formPanel.add(txtCCCD, gbc);
         y++;
 
-        // Số điện thoại
         gbc.gridx = 0; gbc.gridy = y;
         formPanel.add(new JLabel("Số điện thoại:"), gbc);
         gbc.gridx = 1;
@@ -91,7 +85,6 @@ public class SuaKhach {
         formPanel.add(txtPhone, gbc);
         y++;
 
-        // Email
         gbc.gridx = 0; gbc.gridy = y;
         formPanel.add(new JLabel("Email*:"), gbc);
         gbc.gridx = 1;
@@ -99,7 +92,6 @@ public class SuaKhach {
         formPanel.add(txtEmail, gbc);
         y++;
 
-        // Địa chỉ
         gbc.gridx = 0; gbc.gridy = y;
         formPanel.add(new JLabel("Địa chỉ*:"), gbc);
         gbc.gridx = 1;
@@ -113,10 +105,10 @@ public class SuaKhach {
         buttonPanel.setBackground(new Color(240, 240, 240));
         buttonPanel.setBorder(new EmptyBorder(10, 10, 15, 10));
 
-        JButton btnCancel = new JButton("Hủy");
+        JButton btnCancel = new JButton("Huỷ");
         btnCancel.setPreferredSize(new Dimension(100, 35));
         btnCancel.setBackground(HouseUI.LIGHT_GRAY_COLOR);
-        btnCancel.setForeground(Color.WHITE);
+        btnCancel.setForeground(Color.GRAY);
         btnCancel.setFocusPainted(false);
         btnCancel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
